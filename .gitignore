@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+*.env
+
+# Don't ignore the folder itself
+!.keyvaultify/project.json
+
+# Ignore everything else inside .keyvaultify
+.keyvaultify/*
+!.keyvaultify/project.json
