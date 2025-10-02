@@ -1,18 +1,27 @@
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 const readline = require('readline');
+const ora = require('ora');
+const chalk = require('chalk');
+const { KeyvaultifyAPI } = require('../utils/api');
 const { getToken } = require('../utils/auth');
 const { getProjectConfig } = require('../utils/project');
-const { decryptSecrets } = require('../utils/encrypt');
 
 module.exports = async function pull(opts = {}) {
   try {
     const token = getToken();
-    if (!token) throw new Error('Not logged in. Run `keyvault login`.');
+    if (!token) {
+      console.error(chalk.red('❌ Not logged in. Run `keyvault login` first.'));
+      process.exit(1);
+    }
 
     const config = getProjectConfig();
-    if (!config) throw new Error('Not initialized. Run `keyvault init`.');
+    if (!config) {
+      console.error(
+        chalk.red('❌ Project not initialized. Run `keyvault init` first.')
+      );
+      process.exit(1);
+    }
 
     const envFile = opts.env || '.env';
     const force = opts.force || false;
@@ -27,11 +36,11 @@ module.exports = async function pull(opts = {}) {
 
       await new Promise((resolve) => {
         rl.question(
-          `⚠️ ${envFile} already exists. Overwrite? (y/N): `,
+          chalk.yellow(`⚠️  ${envFile} already exists. Overwrite? (y/N): `),
           (answer) => {
             rl.close();
             if (answer.toLowerCase() !== 'y') {
-              console.log('❌ Aborted.');
+              console.log(chalk.red('❌ Aborted.'));
               process.exit(0);
             }
             resolve();
@@ -40,30 +49,53 @@ module.exports = async function pull(opts = {}) {
       });
     }
 
-    // Fetch encrypted secrets
-    const url = `http://localhost:3000/api/vault?projectId=${config.projectId}&environment=${config.environment}`;
-    const res = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    // Fetch secrets from API
+    const api = new KeyvaultifyAPI(token);
+    const spinner = ora('Fetching secrets...').start();
 
-    if (res.status !== 200) throw new Error(`Server returned ${res.status}`);
+    const response = await api.getSecrets(config.environmentId);
 
-    const encrypted = res.data;
-    console.log(
-      `☁️ Fetched secrets for ${config.projectId} (${config.environment})`
+    if (!response.success) {
+      spinner.fail('Failed to fetch secrets');
+      console.error(chalk.red('❌'), response.message);
+      if (response.suggestions) {
+        console.log(chalk.gray('\nSuggestions:'));
+        response.suggestions.forEach((suggestion) => {
+          console.log(chalk.gray(`• ${suggestion}`));
+        });
+      }
+      process.exit(1);
+    }
+
+    const secrets = response.data.secrets;
+
+    if (!secrets || secrets.length === 0) {
+      spinner.fail('No secrets found');
+      console.log(chalk.yellow('⚠️  No secrets found in this environment.'));
+      console.log(chalk.gray('Use `keyvault push` to upload secrets first.'));
+      return;
+    }
+
+    spinner.succeed(
+      `Fetched ${secrets.length} secrets from ${config.projectName} (${config.environmentName})`
     );
 
-    const decrypted = decryptSecrets(encrypted, token);
-    const content = Object.entries(decrypted)
-      .map(([k, v]) => `${k}=${v}`)
+    // Convert to .env format
+    const content = secrets
+      .map((secret) => `${secret.key}=${secret.value}`)
       .join('\n');
 
+    // Write to file
+    const writeSpinner = ora('Writing to file...').start();
     fs.writeFileSync(outputPath, content, 'utf-8');
+    writeSpinner.succeed(`Wrote to ${envFile}`);
 
-    console.log(`🔓 Decrypted ${Object.keys(decrypted).length} secrets`);
-    console.log(`📄 Wrote to ${envFile}`);
-    console.log('✅ Done.');
+    console.log(
+      chalk.green(`✅ Successfully pulled ${secrets.length} secrets`)
+    );
+    console.log(chalk.gray(`📄 Saved to: ${outputPath}`));
   } catch (err) {
-    console.error('❌ Pull failed:', err.message);
+    console.error(chalk.red('❌ Pull failed:'), err.message);
+    process.exit(1);
   }
 };

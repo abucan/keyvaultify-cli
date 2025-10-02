@@ -1,187 +1,274 @@
-# 🔐 KeyVaultify Backend
+# 🔐 Keyvaultify CLI
 
-KeyVaultify is a developer-first CLI tool and Node.js API that securely manages secrets across environments and projects. It enables solo developers and small teams to push, pull, and manage encrypted `.env` files with ease — without needing to expose secrets via Git or chat.
-
----
+The official command-line interface for Keyvaultify - a secure secrets management platform for developers and teams.
 
 ## 🚀 Features
 
-- 🔑 CLI commands to push/pull `.env` secrets
-- 🔒 AES-256-GCM encryption (client-side)
-- 🌱 Project/environment-specific secret storage
-- 📁 File-based local config for CLI usage
-- 🧪 Local Node.js backend API for prototyping/testing
+- 🔑 **Secure Authentication** - API token-based authentication with validation
+- 📁 **Project Management** - Link local projects to Keyvaultify projects
+- 🌱 **Environment Support** - Manage secrets across multiple environments
+- 🔐 **Secrets Management** - Push, pull, and manage individual secrets
+- 📊 **Beautiful CLI** - Interactive prompts, progress indicators, and colored output
+- 🛡️ **Error Handling** - Comprehensive error messages with helpful suggestions
 
----
+## 📦 Installation
 
-## 📦 Tech Stack
-
-- **Node.js CLI (CommonJS)**
-- **Axios** for HTTP requests
-- **dotenv** for parsing `.env` files
-- **Crypto** (AES-256-GCM for local encryption)
-- **Local JSON/config storage** (no DB yet)
-- **Pluggable project structure** for backend API
-
----
-
-## 🛠️ Setup & Installation
-
-### 1. Clone this project
+### Global Installation
 
 ```bash
-git clone https://github.com/yourname/keyvaultify-cli.git
-cd keyvaultify-cli
+npm install -g @keyvaultify/cli
 ```
 
-### 2. Install dependencies
+### Local Installation
 
 ```bash
+npm install @keyvaultify/cli
+npx keyvault --help
+```
+
+## 🚀 Quick Start
+
+### 1. Login
+
+```bash
+keyvault login
+```
+
+Paste your API token from [Keyvaultify Settings](https://keyvaultify.com/settings/developer).
+
+### 2. Initialize Project
+
+```bash
+keyvault init
+```
+
+Select your project and environment from the interactive menu.
+
+### 3. Push Secrets
+
+```bash
+keyvault push
+```
+
+Upload your `.env` file to Keyvaultify.
+
+### 4. Pull Secrets
+
+```bash
+keyvault pull
+```
+
+Download secrets to your local `.env` file.
+
+## 📋 Commands
+
+### Authentication
+
+| Command           | Description                   |
+| ----------------- | ----------------------------- |
+| `keyvault login`  | Authenticate with Keyvaultify |
+| `keyvault logout` | Log out and clear credentials |
+
+### Projects
+
+| Command                       | Description                       |
+| ----------------------------- | --------------------------------- |
+| `keyvault init`               | Link local project to Keyvaultify |
+| `keyvault projects`           | List all available projects       |
+| `keyvault projects:show <id>` | Show project details              |
+
+### Environments
+
+| Command                           | Description                          |
+| --------------------------------- | ------------------------------------ |
+| `keyvault environments`           | List environments in current project |
+| `keyvault environments:show <id>` | Show environment details             |
+
+### Secrets
+
+| Command                                   | Description                         |
+| ----------------------------------------- | ----------------------------------- |
+| `keyvault push [--env <file>]`            | Push secrets from .env file         |
+| `keyvault pull [--env <file>] [--force]`  | Pull secrets to .env file           |
+| `keyvault secrets`                        | List secrets in current environment |
+| `keyvault secrets:show <key>`             | Show specific secret                |
+| `keyvault secrets:set <key> <value>`      | Set a secret value                  |
+| `keyvault secrets:delete <key> [--force]` | Delete a secret                     |
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# API endpoint (default: http://localhost:3000)
+export KEYVAULTIFY_API_URL=https://api.keyvaultify.com
+
+# Debug mode
+export KEYVAULTIFY_DEBUG=true
+
+# Log level
+export KEYVAULTIFY_LOG_LEVEL=debug
+```
+
+### File Locations
+
+- **Config**: `~/.keyvaultify/config.json`
+- **Project Config**: `.keyvaultify/project.json`
+- **Debug Logs**: `~/.keyvaultify/debug.log`
+
+## 📖 Examples
+
+### Basic Workflow
+
+```bash
+# 1. Login
+keyvault login
+
+# 2. Initialize project
+keyvault init
+
+# 3. Push secrets
+keyvault push
+
+# 4. Pull secrets to different file
+keyvault pull --env .env.production
+```
+
+### Managing Individual Secrets
+
+```bash
+# List all secrets
+keyvault secrets
+
+# Show specific secret
+keyvault secrets:show DATABASE_URL
+
+# Set a new secret
+keyvault secrets:set API_KEY "sk_test_123456"
+
+# Delete a secret
+keyvault secrets:delete OLD_KEY
+```
+
+### Working with Different Environments
+
+```bash
+# List environments
+keyvault environments
+
+# Show environment details
+keyvault environments:show env_123
+
+# List secrets in specific environment
+keyvault secrets --env env_123
+```
+
+## 🛠️ Development
+
+### Setup
+
+```bash
+git clone https://github.com/keyvaultify/cli.git
+cd keyvaultify-cli
 npm install
 ```
 
-### 3. Run CLI locally (dev mode)
+### Running Tests
 
 ```bash
-npm run dev -- login
+npm test
 ```
 
----
-
-## 🧱 CLI Commands
+### Building
 
 ```bash
-keyvault login          # Store your API token
-keyvault init           # Link your local project and environment
-keyvault push           # Encrypt and push secrets to the API
-keyvault pull           # Fetch and decrypt secrets from the API
+npm run build
 ```
 
-You can pass options like:
+### Linting
 
 ```bash
-keyvault push --env .env.staging
-keyvault pull --env .env.local --force
+npm run lint
 ```
 
----
+## 🔐 Security
 
-## 🌍 Environment Variables (for Backend/API)
+- **API Tokens**: Stored securely in `~/.keyvaultify/config.json`
+- **Encryption**: All secrets are encrypted server-side using AES-256-GCM
+- **Permissions**: Role-based access control (members: read, admins: write)
+- **Network**: All communication over HTTPS
 
-While the backend is currently designed to run locally without a full DB, these variables are relevant for future expansion:
+## 🐛 Troubleshooting
 
-```env
-PORT=3000
+### Common Issues
+
+**"Not logged in" error**
+
+```bash
+keyvault login
 ```
 
-No `.env` required yet, but you can define one if the server is expanded.
+**"Project not initialized" error**
 
----
-
-## 🔐 API Endpoints
-
-The CLI communicates with a local or hosted backend via the following routes:
-
-### `POST /api/vault`
-
-Push encrypted secrets to a specific project + environment.
-
-**Request Body:**
-
-```json
-{
-  "projectId": "abc123",
-  "environment": "dev",
-  "encryptedSecrets": {
-    "iv": "...",
-    "salt": "...",
-    "tag": "...",
-    "data": "..."
-  }
-}
+```bash
+keyvault init
 ```
 
-### `GET /api/vault?projectId=abc123&environment=dev`
+**"Invalid token" error**
 
-Returns the encrypted secrets blob.
+- Check your token at https://keyvaultify.com/settings/developer
+- Run `keyvault logout` and `keyvault login` again
 
-**Response:**
+**Network errors**
 
-```json
-{
-  "iv": "...",
-  "salt": "...",
-  "tag": "...",
-  "data": "..."
-}
+- Check your internet connection
+- Verify the API URL: `echo $KEYVAULTIFY_API_URL`
+
+### Debug Mode
+
+Enable debug logging:
+
+```bash
+export KEYVAULTIFY_DEBUG=true
+keyvault <command>
 ```
 
----
+Debug logs are saved to `~/.keyvaultify/debug.log`.
 
-## 🔐 Encryption Logic
+## 📚 API Reference
 
-Secrets are encrypted on the client using **AES-256-GCM**:
+The CLI communicates with the Keyvaultify API:
 
-- Encryption key is derived from the API token
-- Encrypted secrets are sent to the backend
-- Decryption happens locally when pulling
+- **Base URL**: `https://api.keyvaultify.com` (or `http://localhost:3000` for development)
+- **Authentication**: Bearer token in `Authorization` header
+- **Content-Type**: `application/json`
 
-See `src/utils/encrypt.js` for full implementation.
+### Endpoints
 
----
-
-## 🧾 File-based Config System
-
-### CLI Token Storage
-
-Stored at:
-
-```
-~/.keyvaultify/config.json
-```
-
-### Project Linkage
-
-Stored in project root:
-
-```
-.keyvaultify/project.json
-```
-
-Example:
-
-```json
-{
-  "projectId": "abc123",
-  "environment": "dev"
-}
-```
-
----
-
-## 📂 Project Structure
-
-```
-src/
-├── commands/           # CLI commands: login, init, push, pull
-├── utils/              # Auth, encryption, project config
-bin/
-└── dev.js              # Entry point for CLI execution
-```
-
----
-
-## 🧠 Next Steps (Planned)
-
-- Replace in-memory backend with persistent DB (PostgreSQL + Prisma)
-- Add project/user linkage with auth tokens
-- Implement audit logs
-- Add web dashboard UI
-
----
+- `GET /api/cli/projects` - List projects
+- `GET /api/cli/projects/:id/environments` - List environments
+- `GET /api/cli/secrets/:envId` - Get secrets
+- `POST /api/cli/secrets/:envId` - Push secrets
+- `DELETE /api/cli/secrets/:envId/:key` - Delete secret
 
 ## 🤝 Contributing
 
-WIP — more coming once repo is public and backend evolves.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: https://keyvaultify.com/docs/cli
+- **Issues**: https://github.com/keyvaultify/cli/issues
+- **Email**: support@keyvaultify.com
 
 ---
+
+Made with ❤️ by the Keyvaultify team

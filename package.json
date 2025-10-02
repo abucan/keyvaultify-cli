@@ -1,19 +1,48 @@
 {
-  "name": "keyvaultify-cli",
+  "name": "@keyvaultify/cli",
   "version": "1.0.0",
-  "description": "A CLI for Keyvaultify for managing secrets",
+  "description": "Official Keyvaultify CLI for managing secrets across environments",
   "bin": {
     "keyvault": "./src/index.js"
   },
   "scripts": {
-    "dev": "node ./bin/dev.js"
+    "dev": "node ./bin/dev.js",
+    "build": "npm run test && npm run lint",
+    "test": "jest",
+    "lint": "eslint src/",
+    "publish:beta": "npm publish --tag beta",
+    "publish:latest": "npm publish --tag latest"
   },
-  "keywords": ["keyvaultify", "cli", "secrets", "management"],
-  "author": "abucan",
-  "license": "ISC",
+  "keywords": [
+    "keyvaultify",
+    "cli",
+    "secrets",
+    "env",
+    "management",
+    "environment-variables"
+  ],
+  "author": "Keyvaultify Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keyvaultify/cli.git"
+  },
+  "homepage": "https://keyvaultify.com/docs/cli",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "axios": "^1.9.0",
+    "boxen": "^5.1.2",
+    "chalk": "^4.1.2",
     "commander": "^14.0.0",
-    "dotenv": "^16.5.0"
+    "dotenv": "^16.5.0",
+    "inquirer": "^9.2.0",
+    "ora": "^5.4.1",
+    "table": "^6.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
   }
 }
